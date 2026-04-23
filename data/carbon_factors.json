@@ -1,0 +1,23 @@
+{
+  "materials": {
+    "BETONFERTIGTEIL": {
+      "name": "Prefabrik Beton",
+      "unit": "kg_CO2_per_piece",
+      "factor": 220.5
+    },
+    "STEEL": {
+      "name": "Çelik",
+      "unit": "kg_CO2_per_kg",
+      "factor": 2.85
+    },
+    "GENEL": {
+      "name": "Tanımsız Obje",
+      "unit": "kg_CO2_per_piece",
+      "factor": 150.0
+    }
+  },
+  "metadata": {
+    "source": "ICE Database / Simplified for PreCarbon",
+    "version": "1.0"
+  }
+}

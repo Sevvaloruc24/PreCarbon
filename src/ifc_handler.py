@@ -1,38 +1,47 @@
 import ifcopenshell
 import os
+import json
 
 
-def model_ozetini_getir(dosya_yolu):
-    # Dosyanın gerçekten orada olup olmadığını kontrol edelim
-    if not os.path.exists(dosya_yolu):
-        print(f"❌ Hata: '{dosya_yolu}' dizininde dosya bulunamadı!")
-        return None
+def karbon_analizi_yap(dosya_yolu):
+    # 1. Önce katsayıları JSON'dan yükleyelim
+    json_path = os.path.join(os.path.dirname(__file__), "..", "data", "carbon_factors.json")
+    try:
+        with open(json_path, "r", encoding="utf-8") as f:
+            katsayilar = json.load(f)["materials"]
+    except Exception as e:
+        print(f"❌ JSON katsayı dosyası okunamadı: {e}")
+        return
 
+    # 2. IFC modelini açalım
     try:
         model = ifcopenshell.open(dosya_yolu)
-        print(f"✅ Model başarıyla yüklendi!")
+        objeler = model.by_type("IfcBuildingElementProxy")
 
-        # Modeldeki her türlü fiziksel objeyi çekiyoruz
-        tum_elemanlar = model.by_type("IfcProduct")
+        toplam_karbon = 0
+        print(f"\n--- 📊 PRECARBON ANALİZ RAPORU ---")
 
-        print(f"\n--- 🕵️‍♀️ 22 OBJENİN DETAYLI LİSTESİ ---")
-        print(f"Toplam Obje Sayısı: {len(tum_elemanlar)}")
-        print("-" * 45)
+        for i, obje in enumerate(objeler, 1):
+            isim = (obje.Name or "").upper()
 
-        # Listeyi tek tek yazdıralım
-        for i, obje in enumerate(tum_elemanlar, 1):
-            sinif = obje.is_a()
-            isim = obje.Name if obje.Name else "İsimsiz Obje"
-            print(f"{i}. [Tip: {sinif:<20}] | [İsim: {isim}]")
+            # Basit eşleştirme mantığı
+            if "BETONFERTIGTEIL" in isim:
+                faktör = katsayilar["BETONFERTIGTEIL"]["factor"]
+                malzeme = "Prefabrik Beton"
+            else:
+                faktör = katsayilar["GENEL"]["factor"]
+                malzeme = "Tanımsız/Genel"
 
-        return model
+            toplam_karbon += faktör
+            print(f"{i}. Obje: {isim[:20]} | Malzeme: {malzeme} | Karbon: {faktör} kg")
+
+        print("-" * 50)
+        print(f"BİNA TOPLAM KARBON AYAK İZİ: {toplam_karbon} kg CO2")
 
     except Exception as e:
-        print(f"❌ Bir hata oluştu: {e}")
-        return None
+        print(f"❌ IFC Analiz hatası: {e}")
 
 
 if __name__ == "__main__":
-    # Dosya yolunun doğruluğundan emin olalım
-    path = "../data/deneme.ifc"
-    model_ozetini_getir(path)
+    path = os.path.join(os.path.dirname(__file__), "..", "data", "deneme.ifc")
+    karbon_analizi_yap(path)

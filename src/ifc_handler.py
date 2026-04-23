@@ -1,23 +1,29 @@
 import ifcopenshell
+import os
 
 
 def model_ozetini_getir(dosya_yolu):
+    # Dosyanın gerçekten orada olup olmadığını kontrol edelim
+    if not os.path.exists(dosya_yolu):
+        print(f"❌ Hata: '{dosya_yolu}' dizininde dosya bulunamadı!")
+        return None
+
     try:
         model = ifcopenshell.open(dosya_yolu)
         print(f"✅ Model başarıyla yüklendi!")
 
-        # .by_type() fonksiyonu bazen alt sınıfları kapsamaz.
-        # Bu yüzden daha geniş bir arama yapıyoruz:
-        duvarlar = model.by_type("IfcWall") + model.by_type("IfcWallStandardCase")
-        dosemeler = model.by_type("IfcSlab")
-        kolonlar = model.by_type("IfcColumn")
-        tum_elemanlar = model.by_type("IfcProduct")  # Modeldeki her türlü fiziksel obje
+        # Modeldeki her türlü fiziksel objeyi çekiyoruz
+        tum_elemanlar = model.by_type("IfcProduct")
 
-        print(f"--- Bina Özeti ---")
-        print(f"Toplam Duvar Sayısı: {len(duvarlar)}")
-        print(f"Toplam Döşeme Sayısı: {len(dosemeler)}")
-        print(f"Toplam Kolon Sayısı: {len(kolonlar)}")
-        print(f"Modeldeki Toplam Obje Sayısı: {len(tum_elemanlar)}")
+        print(f"\n--- 🕵️‍♀️ 22 OBJENİN DETAYLI LİSTESİ ---")
+        print(f"Toplam Obje Sayısı: {len(tum_elemanlar)}")
+        print("-" * 45)
+
+        # Listeyi tek tek yazdıralım
+        for i, obje in enumerate(tum_elemanlar, 1):
+            sinif = obje.is_a()
+            isim = obje.Name if obje.Name else "İsimsiz Obje"
+            print(f"{i}. [Tip: {sinif:<20}] | [İsim: {isim}]")
 
         return model
 
@@ -27,5 +33,6 @@ def model_ozetini_getir(dosya_yolu):
 
 
 if __name__ == "__main__":
+    # Dosya yolunun doğruluğundan emin olalım
     path = "../data/deneme.ifc"
     model_ozetini_getir(path)

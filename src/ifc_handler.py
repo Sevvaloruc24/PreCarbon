@@ -1,72 +1,70 @@
 import ifcopenshell
+import ifcopenshell.geom
 import os
 import json
+import matplotlib.pyplot as plt
 
 
 def karbon_analizi_yap(dosya_yolu):
-    # 1. Katsayıları JSON'dan yükle (Hata almamak için bu kısım şart)
+    # 1. Katsayıları Yükle
     json_path = os.path.join(os.path.dirname(__file__), "..", "data", "carbon_factors.json")
+    with open(json_path, "r", encoding="utf-8") as f:
+        katsayilar = json.load(f)["materials"]
 
-    try:
-        with open(json_path, "r", encoding="utf-8") as f:
-            data = json.load(f)
-            katsayilar = data["materials"]
-    except Exception as e:
-        print(f"❌ JSON katsayı dosyası okunamadı veya yolu yanlış: {e}")
-        return
+    # 2. IFC ve Geometri Ayarları
+    settings = ifcopenshell.geom.settings()
+    model = ifcopenshell.open(dosya_yolu)
+    objeler = model.by_type("IfcBuildingElementProxy")
 
-    # 2. IFC modelini aç ve analiz et
-    try:
-        model = ifcopenshell.open(dosya_yolu)
-        objeler = model.by_type("IfcBuildingElementProxy")
+    isimler_listesi = []
+    karbon_degerleri = []
 
-        toplam_karbon = 0
-        print(f"\n--- 📊 HACİM TABANLI ANALİZ RAPORU ---")
-        print(f"{'No':<3} | {'Obje İsmi':<20} | {'Hacim':<10} | {'Karbon Yükü':<15}")
-        print("-" * 65)
+    print(f"\n--- 🚀 AKILLI GEOMETRİ VE KARBON ANALİZİ ---")
 
-        for i, obje in enumerate(objeler, 1):
-            isim = (obje.Name or "İsimsiz").upper()
+    for i, obje in enumerate(objeler, 1):
+        isim = (obje.Name or f"Obje_{i}").upper()
 
-            # --- HACİM ÇEKME MANTIĞI ---
-            hacim = 0.0
-            # IFC hiyerarşisinde miktar (Quantity) setlerini tarıyoruz
-            for rel in getattr(obje, "IsDefinedBy", []):
-                if rel.is_a('IfcRelDefinesByProperties'):
-                    prop_set = rel.RelatingPropertyDefinition
-                    if prop_set.is_a('IfcElementQuantity'):
-                        for quantity in prop_set.Quantities:
-                            if quantity.is_a('IfcQuantityVolume'):
-                                hacim = quantity.VolumeValue
+        # --- A SEÇENEĞİ: BOUNDING BOX HACİM HESABI ---
+        try:
+            shape = ifcopenshell.geom.create_shape(settings, obje)
+            # Objenin köşe noktalarından kutu boyutlarını buluyoruz
+            verts = shape.geometry.verts
+            x_coords = verts[0::3];
+            y_coords = verts[1::3];
+            z_coords = verts[2::3]
 
-            # Eğer hacim verisi dosyada yoksa analiz durmasın diye 1.0 varsayıyoruz
-            if hacim == 0:
-                hacim_notu = "(Varsayılan)"
-                hacim = 1.0
-            else:
-                hacim_notu = "m3"
+            genislik = max(x_coords) - min(x_coords)
+            derinlik = max(y_coords) - min(y_coords)
+            yukseklik = max(z_coords) - min(z_coords)
+            hacim = genislik * derinlik * yukseklik
+        except:
+            hacim = 1.0  # Geometri okunamazsa güvenli liman
 
-            # Malzeme belirleme ve hesaplama
-            if "BETON" in isim or "BETONFERTIGTEIL" in isim:
-                faktor = katsayilar["BETONFERTIGTEIL"]["factor"]
-                malzeme_etiketi = "Beton"
-            else:
-                faktor = katsayilar["GENEL"]["factor"]
-                malzeme_etiketi = "Genel"
+        # Karbon Hesaplama
+        faktor = katsayilar["BETONFERTIGTEIL"]["factor"] if "BETON" in isim else katsayilar["GENEL"]["factor"]
+        obje_karbon = hacim * faktor
 
-            obje_karbon = hacim * faktor
-            toplam_karbon += obje_karbon
+        # Grafik için verileri listeye ekle
+        isimler_listesi.append(f"{i}-{isim[:10]}")
+        karbon_degerleri.append(obje_karbon)
 
-            print(f"{i:<3} | {isim[:20]:<20} | {hacim:<6.2f} {hacim_notu:<3} | {obje_karbon:>8.2f} kg")
+        print(f"{i}. {isim[:15]:<15} | Hacim: {hacim:.3f} m3 | Karbon: {obje_karbon:.2f} kg")
 
-        print("-" * 65)
-        print(f"BİNA TOPLAM KARBON AYAK İZİ: {toplam_karbon:.2f} kg CO2")
+    # --- B SEÇENEĞİ: GRAFİK OLUŞTURMA ---
+    plt.figure(figsize=(10, 6))
+    plt.bar(isimler_listesi, karbon_degerleri, color='skyblue')
+    plt.xlabel('Objeler')
+    plt.ylabel('Karbon Ayak İzi (kg CO2)')
+    plt.title('PreCarbon: Obje Bazlı Karbon Dağılımı')
+    plt.xticks(rotation=45, ha='right')
+    plt.tight_layout()
 
-    except Exception as e:
-        print(f"❌ IFC Analiz hatası: {e}")
+    # Grafiği kaydet ve göster
+    plt.savefig(os.path.join(os.path.dirname(__file__), "..", "data", "karbon_grafigi.png"))
+    print(f"\n📊 Grafik 'data/karbon_grafigi.png' olarak kaydedildi!")
+    plt.show()
 
 
 if __name__ == "__main__":
-    # Test amaçlı direkt çalıştırma yolu
     path = os.path.join(os.path.dirname(__file__), "..", "data", "deneme.ifc")
     karbon_analizi_yap(path)

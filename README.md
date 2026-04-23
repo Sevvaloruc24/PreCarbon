@@ -1,10 +1,26 @@
-🏗️ PreCarbon: AI-Powered Early-Stage Carbon Prediction ToolPreCarbon, binaların çevresel etkilerinin %80'inin belirlendiği "erken tasarım" aşamasında, mimar ve mühendislere anlık karbon ayak izi geri bildirimi sağlayan yapay zeka tabanlı bir yazılımdır.🎯 Projenin Amacı (The "Why")Günümüzde inşaat sektöründeki karbon hesaplamaları genellikle tasarım bittikten sonra yapılır; bu aşamada projede değişiklik yapmak oldukça maliyetlidir. PreCarbon bu sorunu şu şekilde çözer:Erken Müdahale: Tasarım henüz konsept aşamasındayken anlık karbon tahminleri sunar.Veri Tamamlama: BIM (Building Information Modeling) modellerindeki eksik verileri Yapay Zeka ile doldurur.Sürdürülebilirlik: Mimarların en doğa dostu malzemeleri anında seçmesini sağlayarak küresel ısınmayı yavaşlatmaya katkıda bulunur.🛠️ Teknik Altyapı (How It Works)Sistem üç temel aşamada çalışır:Veri İşleme: Mimari BIM (IFC) dosyalarından Python altyapısıyla geometrik ve yapısal veriler otomatik olarak çıkarılır.Yapay Zeka: Makine öğrenmesi modelleri ile modeldeki eksikler tamamlanır ve malzemeler küresel karbon veri tabanlarıyla eşleştirilir.Arayüz: Tasarımcılara anlık tahminler sunan, esnek ve kullanıcı dostu bir dashboard üzerinden sonuçlar görselleştirilir.💻 Kullanılan TeknolojilerDil: PythonBIM İşleme: ifcopenshellVeri Analizi & AI: pandas, scikit-learnArayüz: streamlitVeri Kaynağı: ICE (Inventory of Carbon and Energy) Database📂 Proje YapısıPlaintextPreCarbon/
-├── app/          # Streamlit web arayüzü dosyaları
-├── data/         # Örnek .ifc dosyaları ve karbon veri tabanları
-├── notebooks/    # Veri analizi ve AI denemeleri
-├── src/          # Projenin ana kaynak kodları (Parsing, Calculation, AI)
-├── README.md     # Proje dokümantasyonu
-└── requirements.txt # Gerekli kütüphaneler listesi
-🚀 KurulumProjeyi yerel bilgisayarınızda çalıştırmak için:Depoyu klonlayın.Gerekli kütüphaneleri yükleyin:Bashpip install -r requirements.txt
-Uygulamayı başlatın:Bashstreamlit run app/main.py
-🌟 Gelecek VizyonuBu yazılım, daha temiz bir ekosistem ve sürdürülebilir bir gelecek için topluma fayda sağlamayı hedefler. Hedefimiz, inşaat sektörünün doğal kaynak tüketimini azaltarak gelecek nesillere daha yaşanabilir bir dünya bırakmaktır.
+# 🌍 PreCarbon: AI-Powered Early-Stage Carbon Prediction Tool
+
+**PreCarbon**, sürdürülebilir mimari ve inşaat projeleri için IFC (Industry Foundation Classes) modellerini analiz ederek, projenin henüz başında karbon ayak izini tahmin eden bir mühendislik aracıdır.
+
+## 🚀 Özellikler
+- **Geometrik Analiz:** IFC modellerindeki objelerin hacimlerini Bounding Box yöntemiyle otomatik hesaplar.
+- **Akıllı Malzeme Tahmini:** Obje isimlerinden (Beton, Çelik, Cam, Ahşap) malzeme türünü tahmin eder ve ilgili emisyon katsayılarını uygular.
+- **Görsel Raporlama:** Analiz sonuçlarını sütun grafikleri (`Matplotlib`) ile görselleştirir.
+- **Kullanıcı Dostu Arayüz:** `Tkinter` tabanlı dosya seçme arayüzü ile teknik olmayan kullanıcılar için kolaylık sağlar.
+
+## 🛠️ Kullanılan Teknolojiler
+- **Dil:** Python 3.x
+- **BIM Kütüphanesi:** [IfcOpenShell](http://ifcopenshell.org/)
+- **Veri Görselleştirme:** Matplotlib
+- **Arayüz:** Tkinter
+- **Versiyon Kontrol:** Git & GitHub
+
+## 📂 Proje Yapısı
+- `app/`: Uygulamanın yönetim merkezi (GUI ve Logic).
+- `src/`: IFC dosya işleme ve analiz motoru.
+- `data/`: Karbon katsayıları (JSON) ve IFC modelleri.
+
+## 📊 Örnek Çıktı
+![Analiz Grafiği](data/karbon_grafigi.png)
+
+---

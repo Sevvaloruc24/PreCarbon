@@ -1,23 +1,24 @@
 {
   "materials": {
-    "BETONFERTIGTEIL": {
-      "name": "Prefabrik Beton",
-      "unit": "kg_CO2_per_piece",
+    "BETON": {
+      "name": "Beton / Prefabrik",
       "factor": 220.5
     },
     "STEEL": {
-      "name": "Çelik",
-      "unit": "kg_CO2_per_kg",
-      "factor": 2.85
+      "name": "Yapısal Çelik",
+      "factor": 7800.0
+    },
+    "GLASS": {
+      "name": "Cam Panel",
+      "factor": 900.0
+    },
+    "WOOD": {
+      "name": "Ahşap / Kereste",
+      "factor": -120.0
     },
     "GENEL": {
-      "name": "Tanımsız Obje",
-      "unit": "kg_CO2_per_piece",
+      "name": "Tanımsız Materyal",
       "factor": 150.0
     }
-  },
-  "metadata": {
-    "source": "ICE Database / Simplified for PreCarbon",
-    "version": "1.0"
   }
 }

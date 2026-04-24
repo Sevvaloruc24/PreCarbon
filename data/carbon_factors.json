@@ -1,29 +1,46 @@
 {
   "materials": {
-    "BETON": {
-      "name": "Beton / Prefabrik",
-      "factor": 0.12,
-      "density": 2400.0
+    "BETON_STANDART": {
+      "name": "Standart Beton (C25/30)",
+      "factor": 0.13,
+      "density": 2400.0,
+      "unit": "kgCO2e/kg"
     },
-    "STEEL": {
-      "name": "Yapısal Çelik",
-      "factor": 2.85,
-      "density": 7850.0
+    "BETON_GERIDONUSUM": {
+      "name": "Geri Dönüştürülmüş Agregalı Beton",
+      "factor": 0.09,
+      "density": 2350.0,
+      "unit": "kgCO2e/kg"
     },
-    "GLASS": {
-      "name": "Cam Panel",
-      "factor": 1.43,
-      "density": 2500.0
+    "STEEL_REBAR": {
+      "name": "İnşaat Demiri (Donatı Çeliği)",
+      "factor": 1.99,
+      "density": 7850.0,
+      "unit": "kgCO2e/kg"
     },
-    "WOOD": {
-      "name": "Ahşap / Kereste",
-      "factor": 0.72,
-      "density": 600.0
+    "STEEL_SECTION": {
+      "name": "Yapısal Çelik Profiller",
+      "factor": 1.55,
+      "density": 7800.0,
+      "unit": "kgCO2e/kg"
+    },
+    "GLASS_TRIPLE": {
+      "name": "Üçlü Isıcam Paneli",
+      "factor": 1.54,
+      "density": 2500.0,
+      "unit": "kgCO2e/kg"
+    },
+    "WOOD_SOFTWOOD": {
+      "name": "Yumuşak Ahşap (Softwood)",
+      "factor": 0.45,
+      "density": 500.0,
+      "unit": "kgCO2e/kg"
     },
     "GENEL": {
-      "name": "Tanımsız Materyal",
+      "name": "Tanımsız/Genel Malzeme",
       "factor": 0.5,
-      "density": 1000.0
+      "density": 1000.0,
+      "unit": "kgCO2e/kg"
     }
   }
 }

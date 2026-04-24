@@ -2,23 +2,28 @@
   "materials": {
     "BETON": {
       "name": "Beton / Prefabrik",
-      "factor": 220.5
+      "factor": 0.12,
+      "density": 2400.0
     },
     "STEEL": {
       "name": "Yapısal Çelik",
-      "factor": 7800.0
+      "factor": 2.85,
+      "density": 7850.0
     },
     "GLASS": {
       "name": "Cam Panel",
-      "factor": 900.0
+      "factor": 1.43,
+      "density": 2500.0
     },
     "WOOD": {
       "name": "Ahşap / Kereste",
-      "factor": -120.0
+      "factor": 0.72,
+      "density": 600.0
     },
     "GENEL": {
       "name": "Tanımsız Materyal",
-      "factor": 150.0
+      "factor": 0.5,
+      "density": 1000.0
     }
   }
 }

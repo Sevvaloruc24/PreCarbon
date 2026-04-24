@@ -6,89 +6,70 @@ import matplotlib.pyplot as plt
 
 
 def karbon_analizi_yap(dosya_yolu):
-    # 1. Katsayıları JSON'dan Yükle
     json_path = os.path.join(os.path.dirname(__file__), "..", "data", "carbon_factors.json")
-    try:
-        with open(json_path, "r", encoding="utf-8") as f:
-            data = json.load(f)
-            katsayilar = data["materials"]
-    except Exception as e:
-        print(f"❌ JSON katsayı dosyası okunamadı: {e}")
-        return
+    with open(json_path, "r", encoding="utf-8") as f:
+        katsayilar = json.load(f)["materials"]
 
-    # 2. IFC ve Geometri Ayarları
     settings = ifcopenshell.geom.settings()
-    try:
-        model = ifcopenshell.open(dosya_yolu)
-        objeler = model.by_type("IfcBuildingElementProxy")
-    except Exception as e:
-        print(f"❌ IFC dosyası açılamadı: {e}")
-        return
+    model = ifcopenshell.open(dosya_yolu)
+    objeler = model.by_type("IfcBuildingElementProxy")
 
     isimler_listesi = []
     karbon_degerleri = []
     toplam_karbon = 0
 
-    print(f"\n--- 🚀 GELİŞMİŞ MALZEME VE KARBON ANALİZİ ---")
-    print(f"{'No':<3} | {'Obje İsmi':<15} | {'Malzeme':<10} | {'Hacim':<8} | {'Karbon':<10}")
-    print("-" * 65)
+    print(f"\n--- 🧠 AI DESTEKLİ MALZEME TAHMİN RAPORU ---")
 
     for i, obje in enumerate(objeler, 1):
-        isim = (obje.Name or f"Obje_{i}").upper()
+        isim = (obje.Name or "").upper()
 
-        # --- HACİM HESABI (Bounding Box) ---
+        # Geometri ve Hacim Hesabı
         try:
             shape = ifcopenshell.geom.create_shape(settings, obje)
             verts = shape.geometry.verts
-            x_coords = verts[0::3];
-            y_coords = verts[1::3];
-            z_coords = verts[2::3]
-            hacim = (max(x_coords) - min(x_coords)) * (max(y_coords) - min(y_coords)) * (max(z_coords) - min(z_coords))
+            x = max(verts[0::3]) - min(verts[0::3])
+            y = max(verts[1::3]) - min(verts[1::3])
+            z = max(verts[2::3]) - min(verts[2::3])
+            hacim = x * y * z
         except:
             hacim = 1.0
 
-            # --- GELİŞMİŞ MALZEME TAHMİN MEKANİZMASI ---
-        if any(keyword in isim for keyword in ["BETON", "CONCRETE", "BETONFERTIGTEIL"]):
-            faktor = katsayilar["BETON"]["factor"]
-            malzeme_etiketi = "Beton"
-        elif any(keyword in isim for keyword in ["STEEL", "CELIK", "IRON"]):
-            faktor = katsayilar["STEEL"]["factor"]
-            malzeme_etiketi = "Çelik"
-        elif any(keyword in isim for keyword in ["GLASS", "CAM"]):
-            faktor = katsayilar["GLASS"]["factor"]
-            malzeme_etiketi = "Cam"
-        elif any(keyword in isim for keyword in ["WOOD", "AHSAP", "TIMBER"]):
-            faktor = katsayilar["WOOD"]["factor"]
-            malzeme_etiketi = "Ahşap"
-        else:
-            faktor = katsayilar["GENEL"]["factor"]
-            malzeme_etiketi = "Genel"
+        # --- AKILLI TAHMİN ALGORİTMASI ---
+        mat_key = "GENEL"
 
-        obje_karbon = hacim * faktor
+        # 1. Öncelik: İsimden Sınıflandırma
+        if any(k in isim for k in ["BETON", "CONCRETE", "FERTIG"]):
+            mat_key = "BETON"
+        elif any(k in isim for k in ["STEEL", "CELIK", "IRON"]):
+            mat_key = "STEEL"
+        elif any(k in isim for k in ["GLASS", "CAM"]):
+            mat_key = "GLASS"
+
+        # 2. Öncelik (AI Mantığı): Eğer isimden bulunamadıysa hacim/oran analizi
+        if mat_key == "GENEL":
+            # Çok ince ama geniş bir objeyse muhtemelen Cam veya Paneldir
+            if (x > 1.0 and y > 1.0 and z < 0.05):
+                mat_key = "GLASS"
+            # Çok ağır/yoğun bir yapısal eleman gibi duruyorsa (Hacim/Tip analizi örneği)
+            elif hacim < 0.1:
+                mat_key = "STEEL"
+
+            # Hassas Karbon Hesabı: Hacim * Yoğunluk * Karbon Faktörü
+        info = katsayilar[mat_key]
+        ağırlık = hacim * info["density"]
+        obje_karbon = ağırlık * info["factor"]
+
         toplam_karbon += obje_karbon
-
-        # Grafik için verileri kaydet
-        isimler_listesi.append(f"{i}-{malzeme_etiketi}")
+        isimler_listesi.append(f"{i}-{mat_key}")
         karbon_degerleri.append(obje_karbon)
 
-        print(f"{i:<3} | {isim[:15]:<15} | {malzeme_etiketi:<10} | {hacim:<6.2f} m3 | {obje_karbon:>8.2f} kg")
+        print(f"{i:<2} | {mat_key:<6} | {hacim:>5.2f} m3 | Karbon: {obje_karbon:>8.2f} kg")
 
-    print("-" * 65)
-    print(f"BİNA TOPLAM KARBON AYAK İZİ: {toplam_karbon:.2f} kg CO2")
+    print(f"\n🌍 TOPLAM EMİSYON: {toplam_karbon:.2f} kg CO2e")
 
-    # --- GRAFİK OLUŞTURMA ---
-    plt.figure(figsize=(12, 6))
-    plt.bar(isimler_listesi, karbon_degerleri, color='teal')
-    plt.xlabel('Objeler (Malzeme Tipleri)')
-    plt.ylabel('Karbon Ayak İzi (kg CO2)')
-    plt.title('PreCarbon: Çoklu Malzeme Bazlı Karbon Analizi')
-    plt.xticks(rotation=45, ha='right')
-    plt.tight_layout()
-
-    # Grafiği kaydet ve göster
-    grafik_yolu = os.path.join(os.path.dirname(__file__), "..", "data", "karbon_grafigi.png")
-    plt.savefig(grafik_yolu)
-    print(f"\n📊 Grafik güncellendi ve '{grafik_yolu}' konumuna kaydedildi!")
+    # Grafiği çizdir
+    plt.bar(isimler_listesi, karbon_degerleri, color='darkgreen')
+    plt.xticks(rotation=45)
     plt.show()
 
 
